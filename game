@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ถอดรหัสสายลับ (The Code Breaker)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Prompt', sans-serif;
+        }
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        h1 {
+            text-align: center;
+            color: #58a6ff;
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #8b949e;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #white;
+            color: #fff;
+            padding: 10px 15px;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 4px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+        button {
+            background-color: #238636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #2ea043;
+        }
+        button.secondary {
+            background-color: #30363d;
+        }
+        button.secondary:hover {
+            background-color: #484f58;
+        }
+        .log-container {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 10px;
+            background-color: #0d1117;
+        }
+        .log-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 10px;
+            border-bottom: 1px solid #21262d;
+            font-size: 14px;
+        }
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        .badge-bull { color: #3fb950; font-weight: 600; }
+        .badge-cow { color: #d29922; font-weight: 600; }
+        .badge-miss { color: #f85149; }
+        
+        .status-box {
+            text-align: center;
+            padding: 12px;
+            border-radius: 6px;
+            background-color: #1f242c;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🕵️‍♂️ The Code Breaker</h1>
+    <div class="subtitle">ถอดรหัสลับ 3 หลัก ชนะระบบ AI ให้ได้!</div>
+
+    <!-- หน้าตั้งค่ารหัสลับ -->
+    <div id="setup-screen" class="section">
+        <label for="secret-input">ตั้งรหัสลับ 3 หลักของคุณ (ตัวเลขไม่ซ้ำกัน):</label>
+        <div class="input-group">
+            <input type="text" id="secret-input" maxlength="3" placeholder="เช่น 123">
+            <button onclick="startGame()">เริ่มเกม</button>
+        </div>
+        <p id="setup-error" style="color: #f85149; font-size: 12px; margin-top: 6px;"></p>
+    </div>
+
+    <!-- หน้าจอเล่นเกม -->
+    <div id="game-screen" class="hidden">
+        <div class="status-box" id="game-status">
+            รอบการทายของคุณ! ใส่ตัวเลข 3 หลักเพื่อสืบหาความจริง
+        </div>
+
+        <div class="section">
+            <div class="input-group">
+                <input type="text" id="guess-input" maxlength="3" placeholder="???">
+                <button onclick="makeGuess()">ส่งคำทาย</button>
+            </div>
+            <p id="guess-error" style="color: #f85149; font-size: 12px; margin-top: 6px;"></p>
+        </div>
+
+        <div class="section">
+            <label>ประวัติการถอดรหัส:</label>
+            <div class="log-container" id="log-list">
+                <div style="color: #8b949e; text-align: center; padding: 20px;">ยังไม่มีการทายข้อมูล</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- หน้าจอจบเกม -->
+    <div id="end-screen" class="hidden center">
+        <h2 id="end-title" style="margin-bottom: 12px; font-size: 22px;"></h2>
+        <p id="end-desc" style="color: #8b949e; margin-bottom: 20px;"></p>
+        <button onclick="resetGame()">เล่นใหม่อีกครั้ง</button>
+    </div>
+</div>
+
+<script>
+    let playerSecret = "";
+    let aiSecret = "";
+    let attempts = 0;
+    let gameOver = false;
+
+    // สุ่มรหัส AI 3 หลัก (ไม่ซ้ำกัน)
+    function generateAISecret() {
+        let digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+        digits.sort(() => Math.random() - 0.5);
+        return digits.slice(0, 3).join('');
+    }
+
+    // ตรวจสอบความถูกต้องของตัวเลข 3 หลัก (ห้ามซ้ำ)
+    function isValidCode(code) {
+        if (code.length !== 3 || isNaN(code)) return false;
+        return new Set(code.split('')).size === 3;
+    }
+
+    // ตรวจสอบรหัส (เทียบรหัสเป้าหมาย กับ คำทาย)
+    function evaluateGuess(target, guess) {
+        let bulls = 0;
+        let cows = 0;
+        for (let i = 0; i < 3; i++) {
+            if (guess[i] === target[i]) {
+                bulls++;
+            } else if (target.includes(guess[i])) {
+                cows++;
+            }
+        }
+        return { bulls, cows };
+    }
+
+    function startGame() {
+        const input = document.getElementById('secret-input').value;
+        const errorEl = document.getElementById('setup-error');
+
+        if (!isValidCode(input)) {
+            errorEl.innerText = "กรุณากรอกตัวเลข 3 หลัก และต้องไม่ซ้ำกันครับ!";
+            return;
+        }
+
+        playerSecret = input;
+        aiSecret = generateAISecret();
+        attempts = 0;
+        gameOver = false;
+
+        // สลับหน้าจอ
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        document.getElementById('log-list.innerHTML') = '';
+        document.getElementById('game-status').innerText = `รอบการทายของคุณ! ( AI แอบซ่อนรหัสไว้แล้ว )`;
+    }
+
+    function makeGuess() {
+        if (gameOver) return;
+        const guessInput = document.getElementById('guess-input');
+        const guess = guessInput.value;
+        const errorEl = document.getElementById('guess-error');
+
+        if (!isValidCode(guess)) {
+            errorEl.innerText = "กรุณาทายด้วยตัวเลข 3 หลักที่ไม่ซ้ำกัน!";
+            return;
+        }
+        errorEl.innerText = "";
+        attempts++;
+
+        // 1. ผู้เล่นทาย AI
+        let playerEval = evaluateGuess(aiSecret, guess);
+        
+        // 2. AI ทายผู้เล่น (สุ่มทายง่าย ๆ เพื่อจำลองคู่แข่ง)
+        let aiGuess = generateAISecret();
+        let aiEval = evaluateGuess(playerSecret, aiGuess);
+
+        // บันทึกประวัติลงตาราง
+        let logList = document.getElementById('log-list');
+        if (attempts === 1) logList.innerHTML = ''; // ล้างข้อความเริ่มต้น
+
+        let logHTML = `
+            <div class="log-item">
+                <span>🎯 คุณทาย: <b>${guess}</b></span>
+                <span><span class="badge-bull">เป๊ะ ${playerEval.bulls}</span>, <span class="badge-cow">เฉียด ${playerEval.cow}</span></span>
+            </div>
+            <div class="log-item" style="background-color: #12161c;">
+                <span>🤖 AI ทาย: <b>${aiGuess}</b></span>
+                <span><span class="badge-bull">เป๊ะ ${aiEval.bulls}</span>, <span class="badge-cow">เฉียด ${aiEval.cows}</span></span>
+            </div>
+        `;
+        logList.innerHTML += logHTML;
+        logList.scrollTop = logList.scrollHeight;
+        guessInput.value = "";
+
+        // เช็คเงื่อนไขชนะ/แพ้
+        if (playerEval.bulls === 3 && aiEval.bulls === 3) {
+            endGame(true, "เสมอ! คุณและ AI ถอดรหัสได้พร้อมกันในรอบที่ " + attempts);
+        } else if (playerEval.bulls === 3) {
+            endGame(true, `🎉 ยินดีด้วย! คุณถอดรหัส AI (${aiSecret}) สำเร็จใน ${attempts} ครั้ง!`);
+        } else if (aiEval.bulls === 3) {
+            endGame(false, `💥 เสียใจด้วย! AI แฮกโค้ดของคุณ (${playerSecret}) ได้ก่อนในรอบที่ ${attempts}!`);
+        }
+    }
+
+    function endGame(isWin, message) {
+        gameOver = true;
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.remove('hidden');
+        
+        document.getElementById('end-title').innerText = isWin ? "🎯ภารกิจสำเร็จ!" : "❌ ภารกิจล้มเหลว!";
+        document.getElementById('end-title').style.color = isWin ? "#3fb950" : "#f85149";
+        document.getElementById('end-desc').innerText = message;
+    }
+
+    function resetGame() {
+        document.getElementById('end-screen').classList.add('hidden');
+        document.getElementById('setup-screen').classList.remove('hidden');
+        document.getElementById('secret-input').value = "";
+        document.getElementById('setup-error').innerText = "";
+        document.getElementById('log-list').innerHTML = '<div style="color: #8b949e; text-align: center; padding: 20px;">ยังไม่มีการทายข้อมูล</div>';
+    }
+</script>
+
+</body>
+</html>
